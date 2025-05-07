@@ -1,0 +1,179 @@
+{% extends "fitness/base.html" %}
+{% block content %}
+<div class="container py-5">
+    <!-- Header Section -->
+    <header class="mb-5 text-center">
+        <h1 class="display-4 fw-bold text-primary">FitAI Coach</h1>
+        <p class="lead text-muted">Your Smart Fitness Companion</p>
+    </header>
+
+    <!-- Notification Messages -->
+    {% if messages %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Grid -->
+    <div class="row g-4">
+        <!-- Prediction Card -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-dumbbell me-2"></i>New Workout Prediction</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Workout Type</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-running"></i></span>
+                                <input type="text" name="workout_type" class="form-control" 
+                                       placeholder="e.g. Running, Yoga" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Duration (minutes)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                <input type="number" name="duration" class="form-control" 
+                                       min="1" value="30" required>
+                            </div>
+                        </div>
+                        <button type="submit" name="predict_workout" 
+                                class="btn btn-primary w-100 btn-lg">
+                            <i class="fas fa-calculator me-2"></i>Calculate Calories
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal Tracking Card -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-utensils me-2"></i>Track Nutrition</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Meal Type</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-apple-alt"></i></span>
+                                <input type="text" name="meal_type" class="form-control" 
+                                       placeholder="e.g. Breakfast, Snack" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Calories</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-fire"></i></span>
+                                <input type="number" step="50" name="meal_calories" 
+                                       class="form-control" placeholder="Calories" required>
+                            </div>
+                        </div>
+                        <button type="submit" name="log_meal" 
+                                class="btn btn-success w-100 btn-lg">
+                            <i class="fas fa-save me-2"></i>Log Meal
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout History -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-history me-2"></i>Workout History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Duration</th>
+                                    <th>Calories</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for workout in workouts %}
+                                <tr>
+                                    <td>{{ workout.created_at|date:"M d, Y" }}</td>
+                                    <td>{{ workout.workout_type }}</td>
+                                    <td>{{ workout.duration }} mins</td>
+                                    <td>{{ workout.calories_burned|floatformat:0 }} kcal</td>
+                                    <td>
+                                        {% if workout.predictionresult %}
+                                            <a href="{% url 'fitness:result' workout.predictionresult.id %}" 
+                                               class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-chart-line"></i> View
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">No prediction</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No workouts logged yet</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal History -->
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i>Nutrition History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                        {% for meal in meals %}
+                        <div class="col">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-success">
+                                        <i class="fas fa-utensils"></i> {{ meal.meal_type }}
+                                    </h5>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-primary rounded-pill">
+                                            {{ meal.created_at|date:"M d" }}
+                                        </span>
+                                        <span class="h4 text-danger">
+                                            {{ meal.calories|floatformat:0 }} kcal
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <p class="text-center text-muted">No meals logged yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

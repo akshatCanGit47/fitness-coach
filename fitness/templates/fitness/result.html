@@ -1,0 +1,23 @@
+{% extends "fitness/base.html" %}
+
+{% block title %}Prediction Result{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="fas fa-chart-line"></i> Prediction Result</h4>
+    </div>
+    <div class="card-body text-center">
+        <h2>{{ prediction.workout.workout_type }}</h2>
+        <div class="display-4 text-success my-4">
+            {{ prediction.predicted_calories|floatformat:0 }} kcal
+        </div>
+        <p class="text-muted">
+            {{ prediction.workout.duration }} minutes
+        </p>
+        <a href="{% url 'fitness:dashboard' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
